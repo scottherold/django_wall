@@ -1,0 +1,137 @@
+<!DOCTTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>The Wall</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container bg-light">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <a class="navbar-brand text-white">The Wall</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </nav>
+            <div class="jumbotron jumbotron-fluid bg-light">
+                {% if 'logged_in' not in request.session %}
+                    <h2 class="text-center">Register an Account</h2>
+                    <hr class="my-4">
+                    <form action="users/create/" method="post">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="first_name">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First name">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="last_name">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="text" class="form-control" id="email" name="email" placeholder="example@example.com">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="password">Password</label>
+                                <input type="password" class="form-control" id="password" name="password">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="password_confirm">Confirm Password</label>
+                                <input type="password" class="form-control" id="password_confirm" name="password_confirm">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <p class="text-danger">{{ message }}</p>
+                        {% endfor %}
+                        <hr class="my-4">
+                    {% endif %}
+                    <hr class="my-4">
+                    <h2 class="text-center">Login to your account</h2>
+                    <hr class="my-4">
+                    <form class="form" action="users/login/" method="post">
+                    {% csrf_token %}
+                        <div class="form-group">
+                            <label for="email">Email Address</label>                    
+                            <input type="text" class="form-control w-50 mb-2" id="email" name="email" placeholder="example@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>                    
+                            <input type="password" class="form-control w-50 mb-2" id="password" name="password">
+                        </div>  
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                {% endif %}
+                {% if 'logged_in' in request.session %}
+                    <hr class="my-4">
+                    <h2 class="text-center">The Wall</h2>
+                    <hr class="my-4">
+                    <h4 class="text-center">New Post</h4>
+                    <form action="posts/messages/create/" method="post">
+                        {% csrf_token %}
+                        <div class="row mb-2 w-100">
+                            <div class="col-12">
+                                <textarea class="form-control" id="message" name="message" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="row mb-2 w-100 justify-content-center mb-4">
+                            <button type="submit" class="btn btn-primary">Post</button>
+                        </div>
+                    </form>
+                    {% for message in message_post %}
+                        <hr class="my-4">
+                            <div class="row mb-2 w-100 justify-content-start">
+                                <div class="col-4 align-items-start">
+                                    <h6>{{ message.message_poster.first_name }} said on {{ message.created_at }}:</h6>
+                                </div>
+                                <div class="col-8 border border-light rounded bg-white">
+                                    {{ message.message }}
+                                </div>
+                            </div>
+                            {% for comment in comment_post %}
+                                {% if comment.commented_on == message %}
+                                    <div class="row w-100 justify-content-end mb-4">
+                                        <div class="col-4 align-items-start">
+                                            {{ comment.comment_poster.first_name }} commented on {{ comment.created_at }}:
+                                            {% if comment.comment_poster.id == request.session.id %}
+                                                <form class="form" action="posts/{{ comment.id }}/comments/delete/" method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" value="message_id">
+                                                    <button type="submit" class="btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-4 border border border-light rounded bg-white">
+                                            {{ comment.comment }}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            <h6 class="text-center">Comment on Post</h6>
+                            <form action="posts/{{ message.id }}/comments/create/" method="post">
+                                {% csrf_token %}
+                                <div class="row mb-2 w-100">
+                                    <div class="col-12">
+                                        <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                                    </div>
+                                </div>
+                                <div class="row mb-2 w-100 justify-content-center mb-4">
+                                    <button type="submit" class="btn btn-success">Comment</button>
+                                </div>
+                            </form>
+                    {% endfor %}
+                            <hr class="my-4">
+                        <div class="row justify-content-center w-100 mb-2">
+                                <a href="users/logout" class="btn btn-danger">Logout</a> 
+                        </div>
+                    </div>
+            {% endif %}
+        </div>
+    </body>
+</html>
